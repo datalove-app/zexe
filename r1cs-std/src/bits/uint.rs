@@ -1,5 +1,5 @@
 macro_rules! make_uint {
-    ($name:ident, $size:expr, $native:ident, $mod_name:ident, $native_doc_name:expr) => {
+    ($name:ident, $size:expr, $native:ty, $mod_name:ident, $native_doc_name:expr) => {
         #[doc = "This module contains a `UInt"]
         #[doc = $native_doc_name]
         #[doc = "`, a R1CS equivalent of the `u"]
@@ -45,7 +45,7 @@ macro_rules! make_uint {
                 fn value(&self) -> Result<Self::Value, SynthesisError> {
                     let mut value = None;
                     for (i, bit) in self.bits.iter().enumerate() {
-                        let b = $native::from(bit.value()?);
+                        let b = <$native>::from(bit.value()?);
                         value = match value {
                             Some(value) => Some(value + (b << i)),
                             None => Some(b << i),
@@ -105,17 +105,17 @@ macro_rules! make_uint {
 
                         match b {
                             &Boolean::Constant(b) => {
-                                value.as_mut().map(|v| *v |= $native::from(b));
+                                value.as_mut().map(|v| *v |= <$native>::from(b));
                             }
                             &Boolean::Is(ref b) => match b.value() {
                                 Ok(b) => {
-                                    value.as_mut().map(|v| *v |= $native::from(b));
+                                    value.as_mut().map(|v| *v |= <$native>::from(b));
                                 }
                                 Err(_) => value = None,
                             },
                             &Boolean::Not(ref b) => match b.value() {
                                 Ok(b) => {
-                                    value.as_mut().map(|v| *v |= $native::from(!b));
+                                    value.as_mut().map(|v| *v |= <$native>::from(!b));
                                 }
                                 Err(_) => value = None,
                             },
@@ -139,7 +139,7 @@ macro_rules! make_uint {
                         .cloned()
                         .collect();
 
-                    $name {
+                    Self {
                         bits: new_bits,
                         value: self
                             .value
@@ -165,7 +165,7 @@ macro_rules! make_uint {
                         .map(|(a, b)| a.xor(b))
                         .collect::<Result<_, _>>()?;
 
-                    Ok($name {
+                    Ok(Self {
                         bits,
                         value: new_value,
                     })
@@ -192,7 +192,7 @@ macro_rules! make_uint {
 
                     // Compute the maximum value of the sum so we allocate enough bits for
                     // the result
-                    let mut max_value = (operands.len() as u128) * u128::from($native::max_value());
+                    let mut max_value = (operands.len() as u128) * u128::from(<$native>::max_value());
 
                     // Keep track of the resulting value
                     let mut result_value = Some(0u128);
@@ -252,7 +252,7 @@ macro_rules! make_uint {
                         // We can just return a constant, rather than
                         // unpacking the result into allocated bits.
 
-                        return Ok($name::constant(modular_value.unwrap()));
+                        return Ok(Self::constant(modular_value.unwrap()));
                     }
                     let cs = operands.cs();
 
@@ -285,7 +285,7 @@ macro_rules! make_uint {
                     // Discard carry bits that we don't care about
                     result_bits.truncate($size);
 
-                    Ok($name {
+                    Ok(Self {
                         bits: result_bits,
                         value: modular_value,
                     })

@@ -165,7 +165,7 @@ impl<'a, F: Field, T: 'a + R1CSVar<F>> R1CSVar<F> for &'a T {
     }
 }
 
-/// A utility trait to convert `Self` to `Result<T, SynthesisErrorA`.>
+/// A utility trait to convert `Self` to `Result<T, SynthesisError>`.
 pub trait Assignment<T> {
     /// Converts `self` to `Result`.
     fn get(self) -> Result<T, r1cs_core::SynthesisError>;
